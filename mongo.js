@@ -1,6 +1,6 @@
 const Mongoose = require('mongoose');
 const {db} = require('./conf.js');
-const dbURI = `mongodb://${db.user}:${db.password}@${db.address?db.address:'127.0.0.1'}:${db.port?db.port:'27017'}/${db.name}?authSource=${db.authSource?db.authSource:'admin'}`;
+const dbURI = `mongodb://${db.user}:${db.pwd}@${db.address?db.address:'127.0.0.1'}:${db.port?db.port:'27017'}/${db.name}?authSource=${db.authSource?db.authSource:'admin'}`;
 console.log(dbURI);
 
 const connectDB = {
