@@ -91,7 +91,6 @@ async function encrypt(plainText, key)
         new TextEncoder().encode(plainText)
     );
     const encryptedString = new Uint8Array(encryptedTextArrayBuffer);
-    console.log(iv, encryptedString);
     return `AES-GCM:${iv}:${encryptedString}`;
 }
 
@@ -108,7 +107,5 @@ async function decrypt(encryptedCombinedText, key)
         key,
         encrypted
     );
-
-    console.log(iv, encrypted, dec.decode(decryptedTextArrayBuffer));
     return null;
 }

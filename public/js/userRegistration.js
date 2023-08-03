@@ -35,21 +35,29 @@ window.addEventListener('load', function(){
         formData.delete('registration_specificCategoryId');
         formData.delete('registration_operationalAuthorisationId');
 
-
+        // set and store the password hash
         formData.append('passwordHash',await hashPassword(password));
+
+        // set the encryption key, wrap it and store the wrapped key
         $modalFeedback.innerText = 'Generating secure key for encrypting data';
-        // generate the encryption key to encrypt sensitive data
         let encryptionKey = await getEncryptionKey();
         let wrappedKey = await wrapCryptoKey(encryptionKey, password);
         formData.append('wrappedEncryptionKey', wrappedKey);
-        let unwrappedKey = await unwrapCryptoKey(wrappedKey, password);
 
+        const encryptAndStoreData = async (key)=> {
+            if(form.elements[key].value)
+            {
+                formData.append(key.replace('registration_', ''), await encrypt(form.elements[key].value, encryptionKey));
+            }
+        };
+
+        // encrypt and secure the privileged data
         $modalFeedback.innerText = 'Encrypting sensitive data';
-        let encryptedOCId = await encrypt(form.elements['registration_openCategoryId'].value, encryptionKey);
+        await encryptAndStoreData('registration_openCategoryId');
+        await encryptAndStoreData('registration_specificCategoryId');
+        await encryptAndStoreData('registration_operationalAuthorisationId');
 
-        formData.append('openCategoryId', encryptedOCId);
-        console.log(await decrypt(encryptedOCId, unwrappedKey));
-
+        console.log(formData);
     }
 
     const $password = document.getElementById('registration_password');
