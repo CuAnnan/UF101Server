@@ -1,10 +1,11 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+const indexRouter = require('./routes/index');
+const userRouter = require('./routes/users');
 
 var app = express();
 
@@ -21,10 +22,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.disable('x-powered-by');
 
 app.use('/', indexRouter);
+app.use('/users/', userRouter);
 
-const multer  = require('multer')
-const storage = multer.memoryStorage();
-const upload = multer({ storage:storage });
 
 console.log('Trying to connect to mongo db instance');
 const db = require('./mongo');
@@ -34,15 +33,22 @@ db.connect().then(()=>{
   console.log(err);
 });
 
+const conf = require('./conf');
+const session = require('express-session');
 
-app.post('/', upload.single('mapImage'), function(req, res, next){
-  console.log(req.file);
-  console.log(req.body);
-  res.json({
-    form:'handled',
-    response:true
-  });
-})
+const sess = {
+  secret: conf.session.secret,
+  saveUninitialized: true,
+  resave: false,
+  cookie: {}
+}
+
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1) // trust first proxy
+  sess.cookie.secure = true // serve secure cookies
+}
+
+app.use(session(sess))
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,9 +62,11 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
+  console.log(err);
   // render the error page
-  res.status(500).send('Server error');
+  res.status(500).render('serverError');
 });
+
+
 
 module.exports = app;

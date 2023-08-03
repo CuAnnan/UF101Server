@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     passwordHash:{type:String, required:true, trim:true},
     passwordSalt:{type:String, required:true, trim:true},
     openCategoryNumber:{type:String, required:false},
-    stsCertificateNumber:{type:String, required:false}
+    stsCertificateNumber:{type:String, required:false},
+    aesKey:{type:String, required:true}
 });
 const User = mongoose.model('User', userSchema);
 module.exports = User;

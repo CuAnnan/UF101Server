@@ -32,4 +32,8 @@ router.get('/', function(req, res, next) {
   res.render('index', {fields: fields });
 });
 
+router.get('/privacy', function(req, res, next){
+  res.render('privacy')
+})
+
 module.exports = router;

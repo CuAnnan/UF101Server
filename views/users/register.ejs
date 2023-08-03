@@ -1,0 +1,76 @@
+<%- include('../header.inc.ejs') %>
+<h3>Account Registration</h3>
+<form id="registration_form" method="post" action="/user/register" onsubmit="return false;">
+    <div class="form-group row">
+        <label for="registration.email" class="col-sm-2 col-form-label">Email</label>
+        <div class="col-sm-10">
+            <input type="email" class="form-control" id="registration.email" name="registration.email" placeholder="Email">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_password" class="col-sm-2 col-form-label">Password <span class="encrypted">*</span></label>
+        <div class="col-sm-10">
+            <input type="password" class="form-control" id="registration_password" name="registration_password">
+            <div class="invalid-feedback" id="passwordFeedback"></div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_passwordConfirmation" class="col-sm-2 col-form-label">Password</label>
+        <div class="col-sm-10">
+            <input type="password" class="form-control" id="registration_passwordConfirmation" name="registration_passwordConfirmation">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_firstname" class="col-sm-2 col-form-label">First name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="registration_firstname" name="registration_firstname">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_lastname" class="col-sm-2 col-form-label">Last name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="registration_lastname" name="registration_lastname">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_openCategoryId" class="col-sm-2 col-form-label">UAS Operator Registration Number (Open Category) <span class="encrypted">*</span></label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="registration_openCategoryId" name="registration_openCategoryId">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_specificCategoryId" class="col-sm-2 col-form-label">Specific Category Registration Number <span class="encrypted">*</span></label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="registration_specificCategoryId" name="registration_specificCategoryId">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label for="registration_operationalAuthorisationId" class="col-sm-2 col-form-label">Operational Authorisation Approval Number <span class="encrypted">*</span></label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="registration_operationalAuthorisationId" name="registration_operationalAuthorisationId">
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-sm-2"></div>
+        <div class="col">
+            <button id="registration_registerButton" class="btn btn-primary">Register</button>
+        </div>
+    </div>
+
+    <p>Form fields marked with a <span class="encrypted">*</span> are encrypted in your browser using industry standard encryption before being sent to the server. Only the encrypted values are stored and they cannot be read by the server admins.</p>
+</form>
+
+
+<div class="modal fade" id="registration_modal" tabindex="-1" role="dialog" aria-labelledby="registrationModalCentre" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="registrationModalTitle">Registration Progress</h5>
+            </div>
+            <div class="modal-body">
+                <div id="registrationModalFeedBack"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<%- include('../footer.inc.ejs') %>
