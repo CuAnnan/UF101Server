@@ -59,6 +59,17 @@ function stringToArrayBuffer(string)
     return bytesUint8.buffer;
 }
 
+/**
+ *
+ * @param {Uint8Array} uintArray
+ * @returns {string}
+ * @constructor
+ */
+function Uint8ArrayToString(uintArray)
+{
+    return btoa(Array.from(uintArray).map(Uint8=>String.fromCharCode(Uint8)).join(''));
+}
+
 async function unwrapCryptoKey(keyToUnwrap, password)
 {
     // get the Salt
@@ -82,6 +93,7 @@ async function unwrapCryptoKey(keyToUnwrap, password)
     );
 }
 
+
 async function encrypt(plainText, key)
 {
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
@@ -90,22 +102,27 @@ async function encrypt(plainText, key)
         key,
         new TextEncoder().encode(plainText)
     );
-    const encryptedString = new Uint8Array(encryptedTextArrayBuffer);
-    return `AES-GCM:${iv}:${encryptedString}`;
+    const encryptedUint8Array = new Uint8Array(encryptedTextArrayBuffer);
+    const encryptedString = Uint8ArrayToString(encryptedUint8Array);
+    const ivString = Uint8ArrayToString(iv);
+
+    return `AES-GCM:${ivString}:${encryptedString}`;
 }
 
 async function decrypt(encryptedCombinedText, key)
 {
     const[,ivString,encryptedString] = encryptedCombinedText.split(':');
     const dec = new TextDecoder();
+    const iv = new Uint8Array(stringToArrayBuffer(ivString));
+    const encrypted = new Uint8Array(stringToArrayBuffer(encryptedString));
 
-    const iv = Uint8Array.from(ivString.split(','));
-    const encrypted = Uint8Array.from(encryptedString.split(','));
-
+    // do the decryption
     const decryptedTextArrayBuffer = await window.crypto.subtle.decrypt(
         { name: "AES-GCM", iv: iv },
         key,
         encrypted
     );
-    return null;
+
+    const decryptedTextArray = new Uint8Array(decryptedTextArrayBuffer);
+    return dec.decode(decryptedTextArray);
 }

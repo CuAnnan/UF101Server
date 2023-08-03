@@ -27,13 +27,22 @@ window.addEventListener('load', function(){
 
     async function encryptAndSubmitForm(password, form)
     {
-        const formData = new FormData(form);
-        // remove unencrypted form data fields
-        formData.delete('registration_password');
-        formData.delete('registration_passwordConfirmation');
-        formData.delete('registration_openCategoryId');
-        formData.delete('registration_specificCategoryId');
-        formData.delete('registration_operationalAuthorisationId');
+        // create a blank FormData object
+        const formData = new FormData();
+
+        // lambda to store fields in the form, encrypting if necessary, removing the prefix which is just to prevent
+        // ambiguity in the HTML structure
+        const stripPrefixAndAddToFormData = async (key, encryptField=false)=> {
+            if(form.elements[key].value)
+            {
+                let data = form.elements[key].value;
+                if(encryptField)
+                {
+                    data = await encrypt(data, encryptionKey);
+                }
+                formData.append(key.replace('registration_', ''), data);
+            }
+        };
 
         // set and store the password hash
         formData.append('passwordHash',await hashPassword(password));
@@ -44,59 +53,67 @@ window.addEventListener('load', function(){
         let wrappedKey = await wrapCryptoKey(encryptionKey, password);
         formData.append('wrappedEncryptionKey', wrappedKey);
 
-        const encryptAndStoreData = async (key)=> {
-            if(form.elements[key].value)
-            {
-                formData.append(key.replace('registration_', ''), await encrypt(form.elements[key].value, encryptionKey));
-            }
-        };
+        await stripPrefixAndAddToFormData('registration_email');
+        await stripPrefixAndAddToFormData('registration_firstname');
+
 
         // encrypt and secure the privileged data
         $modalFeedback.innerText = 'Encrypting sensitive data';
-        await encryptAndStoreData('registration_openCategoryId');
-        await encryptAndStoreData('registration_specificCategoryId');
-        await encryptAndStoreData('registration_operationalAuthorisationId');
+        await stripPrefixAndAddToFormData('registration_openCategoryId', true);
+        await stripPrefixAndAddToFormData('registration_specificCategoryId', true);
+        await stripPrefixAndAddToFormData('registration_operationalAuthorisationId', true);
 
-        console.log(formData);
+        const response = await fetch(
+            '/users/register',
+            {
+                method:"POST",
+                body: formData
+            }
+        );
+        console.log(await response.json());
     }
 
-    const $password = document.getElementById('registration_password');
-    const $passwordConfirmation = document.getElementById('registration_passwordConfirmation');
     const $form = document.getElementById('registration_form');
-    const $formElements = Array.from($form.elements);
+    const $formElements = $form.elements;
+    const formElementsArray = Array.from($form.elements);
     const $passwordFeedback = document.getElementById('passwordFeedback');
+    const $emailFeedback = document.getElementById('emailFeedback');
     const $modal = $('#registration_modal').modal({backdrop:'static'});
     const $modalFeedback = document.getElementById('registrationModalFeedBack');
 
     document.getElementById('registration_registerButton').addEventListener('click', function(){
 
-        $formElements.forEach((element)=>{
+        formElementsArray.forEach((element)=>{
             element.classList.remove('is-invalid');
         });
-        const password = $password.value;
+        const password = $formElements['registration_password'].value;
 
-        if(password !== $passwordConfirmation.value)
+        if(password !== $formElements['registration_passwordConfirmation'].value)
         {
-            $password.innerText = "Password strings do not match";
-            $password.classList.add('is-invalid');
+            $passwordFeedback.innerText = "Password mismatch";
+            $formElements['registration_password'].classList.add('is-invalid');
         }
         else
         {
-            const error = validatePassword(password);
+            let error = validatePassword(password);
             if(error)
             {
                 $passwordFeedback.innerText = error;
-                $password.classList.add('is-invalid');
+                $formElements['registration_password'].classList.add('is-invalid');
+                return null;
             }
-            else
+            if($formElements['registration_email'].value !== $formElements['registration_emailConfirmation'].value)
             {
-
-                $modal.modal('show');
-                $modalFeedback.innerText = 'Securing your password';
-                encryptAndSubmitForm(password, $form).then(()=> {
-                    $modal.modal('hide');
-                });
+                $formElements['registration_email'].classList.add('is-invalid');
+                $emailFeedback.innerText = 'Email mismatch';
+                return null;
             }
+
+            $modal.modal('show');
+            $modalFeedback.innerText = 'Securing your password';
+            encryptAndSubmitForm(password, $form).then(()=> {
+                $modal.modal('hide');
+            });
         }
     });
 });

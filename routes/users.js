@@ -9,21 +9,11 @@ const multer  = require('multer')
 const storage = multer.memoryStorage();
 const upload = multer({ storage:storage });
 
-
-router.get('/', (req, res, next)=>{
-    controller.indexAction(req, res).catch(next);
-});
-
-router.get('/register', (req, res, next)=>{
-    controller.registerUserAction(req,res).catch(next);
-});
-
-router.post('/register', upload.single('mapImage'), function(req, res, next){
-    console.log(req.file);
-    console.log(req.body);
+router.post('/register', upload.none(), function(req, res, next){
     res.json({
         form:'handled',
-        response:true
+        response:true,
+        body:req.body
     });
 })
 
