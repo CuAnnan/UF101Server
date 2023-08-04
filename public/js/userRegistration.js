@@ -55,13 +55,14 @@ window.addEventListener('load', function(){
 
         await stripPrefixAndAddToFormData('registration_email');
         await stripPrefixAndAddToFormData('registration_firstname');
+        await stripPrefixAndAddToFormData('registration_lastname')
 
 
         // encrypt and secure the privileged data
         $modalFeedback.innerText = 'Encrypting sensitive data';
-        await stripPrefixAndAddToFormData('registration_openCategoryId', true);
-        await stripPrefixAndAddToFormData('registration_specificCategoryId', true);
-        await stripPrefixAndAddToFormData('registration_operationalAuthorisationId', true);
+        await stripPrefixAndAddToFormData('registration_uasOperatorRegistrationNumber', true);
+        await stripPrefixAndAddToFormData('registration_stsCertificateNumber', true);
+        await stripPrefixAndAddToFormData('registration_operationAuthorisationApprovalNumber', true);
 
         const response = await fetch(
             '/users/register',
@@ -70,7 +71,7 @@ window.addEventListener('load', function(){
                 body: formData
             }
         );
-        console.log(await response.json());
+        return response.json();
     }
 
     const $form = document.getElementById('registration_form');
@@ -108,10 +109,38 @@ window.addEventListener('load', function(){
                 $emailFeedback.innerText = 'Email mismatch';
                 return null;
             }
+            if(!$formElements['registration_privacy'].checked)
+            {
+                $formElements['registration_privacy'].classList.add('is-invalid');
+                return null;
+            }
 
             $modal.modal('show');
             $modalFeedback.innerText = 'Securing your password';
-            encryptAndSubmitForm(password, $form).then(()=> {
+            encryptAndSubmitForm(password, $form).then((response)=> {
+                if(response.success)
+                {
+                    $($form).hide();
+                    document.getElementById('registration_email_sent').innerText = $formElements['registration_email'].value;
+                    $('#registration_success').show();
+                }
+                else
+                {
+                    if(response.error && response.error.keyPattern)
+                    {
+                        // get the offending duplicate field
+                        const duplicate = Object.keys(response.error.keyPattern)[0];
+                        if(duplicate === 'email')
+                        {
+                            $formElements['registration_email'].classList.add('is-invalid');
+                            $emailFeedback.innerText = 'Email already in use';
+                        }
+                        else
+                        {
+                            console.log(duplicate);
+                        }
+                    }
+                }
                 $modal.modal('hide');
             });
         }

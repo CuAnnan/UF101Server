@@ -1,11 +1,17 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+import createError from 'http-errors'
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
 
-const indexRouter = require('./routes/index');
-const userRouter = require('./routes/users');
+import indexRouter from './routes/index.js';
+import userRouter from './routes/users.js'
+
+import { fileURLToPath } from 'url';
+import conf from './conf.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 var app = express();
 
@@ -26,15 +32,15 @@ app.use('/users/', userRouter);
 
 
 console.log('Trying to connect to mongo db instance');
-const db = require('./mongo');
+import db from './mongo.js';
+
 db.connect().then(()=>{
   console.log('Connected to mongoose instance');
 }).catch((err)=>{
   console.log(err);
 });
 
-const conf = require('./conf');
-const session = require('express-session');
+import session from 'express-session';
 
 const sess = {
   secret: conf.session.secret,
@@ -69,4 +75,4 @@ app.use(function(err, req, res, next) {
 
 
 
-module.exports = app;
+export default app;

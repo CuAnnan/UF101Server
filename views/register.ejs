@@ -41,21 +41,24 @@
         </div>
     </div>
     <div class="form-group row">
-        <label for="registration_openCategoryId" class="col-sm-2 col-form-label">UAS Operator Registration Number (Open Category) <span class="encrypted">*</span></label>
+        <label for="registration_uasOperatorRegistrationNumber" class="col-sm-2 col-form-label">UAS Operator Registration Number (Open Category)<span class="encrypted">*</span></label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" id="registration_openCategoryId" name="registration_openCategoryId">
+            <input type="text" class="form-control" id="registration_uasOperatorRegistrationNumber" name="registration_uasOperatorRegistrationNumber">
+            <div class="invalid-feedback" id="registration_uasOperatorRegistrationNumberFeedback"></div>
         </div>
     </div>
     <div class="form-group row">
-        <label for="registration_specificCategoryId" class="col-sm-2 col-form-label">Specific Category Registration Number <span class="encrypted">*</span></label>
+        <label for="registration_stsCertificateNumber" class="col-sm-2 col-form-label">STS Certificate Number <span class="encrypted">*</span></label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" id="registration_specificCategoryId" name="registration_specificCategoryId">
+            <input type="text" class="form-control" id="registration_stsCertificateNumber" name="registration_stsCertificateNumber">
+            <div class="invalid-feedback" id="registration_stsCertificateNumberFeedback"></div>
         </div>
     </div>
     <div class="form-group row">
-        <label for="registration_operationalAuthorisationId" class="col-sm-2 col-form-label">Operational Authorisation Approval Number <span class="encrypted">*</span></label>
+        <label for="registration_operationAuthorisationApprovalNumber" class="col-sm-2 col-form-label">Operational Authorisation Approval Number <span class="encrypted">*</span></label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" id="registration_operationalAuthorisationId" name="registration_operationalAuthorisationId">
+            <input type="text" class="form-control" id="registration_operationAuthorisationApprovalNumber" name="registration_operationAuthorisationApprovalNumber">
+            <div class="invalid-feedback" id="registration_operationAuthorisationApprovalNumberFeedback"></div>
         </div>
     </div>
     <div class="form-group row">
@@ -63,6 +66,7 @@
         <div class="col">
             <input type="checkbox" id="registration_privacy" class="form-check-input" required/>
             <label for="registration_privacy" class="form-check-label">I have read and agree to the privacy and data policy.</label>
+            <div class="invalid-feedback" id="privacyFeedback">You must agree to the privacy and data policy</div>
         </div>
     </div>
     <div class="form-group row">
@@ -73,6 +77,10 @@
     </div>
     <p>Form fields marked with a <span class="encrypted">*</span> are encrypted in your browser using industry standard encryption before being sent to the server. Only the encrypted values are stored and they cannot be read by the server admins.</p>
 </form>
+<div id="registration_success" style="display:none">
+    <h3>Account created</h3>
+    <p>Your account has been created and an email has been sent to <span id="registration_email_sent"></span> with a link that you will need to verify.</p>
+</div>
 
 
 <div class="modal fade" id="registration_modal" tabindex="-1" role="dialog" aria-labelledby="registrationModalCentre" aria-hidden="true">

@@ -1,9 +1,12 @@
-const Mongoose = require('mongoose');
-const {db} = require('./conf.js');
-const dbURI = `mongodb://${db.user}:${db.pwd}@${db.address?db.address:'127.0.0.1'}:${db.port?db.port:'27017'}/${db.name}?authSource=${db.authSource?db.authSource:'admin'}`;
-console.log(dbURI);
+import Mongoose from 'mongoose';
+import conf from './conf.js';
+const db = conf.db;
 
-const connectDB = {
+const dbURI = `mongodb://${db.user}:${db.pwd}@${db.address?db.address:'127.0.0.1'}:${db.port?db.port:'27017'}/${db.name}?authSource=${db.authSource?db.authSource:'admin'}`;
+
+
+
+const mongo = {
     connect:()=>{
         console.log('Trying to connect');
         let dbPromise = Mongoose.connect(
@@ -18,4 +21,4 @@ const connectDB = {
     }
 };
 
-module.exports = connectDB;
+export default mongo;
