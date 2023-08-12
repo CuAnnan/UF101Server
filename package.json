@@ -10,15 +10,20 @@
     "cookie-parser": "~1.4.4",
     "crypto-browserify": "^3.12.0",
     "debug": "~2.6.9",
+    "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
+    "hi-base32": "^0.5.1",
     "http-errors": "~1.6.3",
     "mongoose": "^7.4.1",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
     "nanoid": "^4.0.2",
-    "pbkdf2": "^3.1.2"
+    "nodemailer": "^6.9.4",
+    "otpauth": "^9.1.4",
+    "pbkdf2": "^3.1.2",
+    "qrcode": "^1.5.3"
   },
   "devDependencies": {
     "buffer": "^6.0.3",

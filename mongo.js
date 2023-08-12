@@ -1,10 +1,8 @@
 import Mongoose from 'mongoose';
-import conf from './conf.js';
-const db = conf.db;
 
-const dbURI = `mongodb://${db.user}:${db.pwd}@${db.address?db.address:'127.0.0.1'}:${db.port?db.port:'27017'}/${db.name}?authSource=${db.authSource?db.authSource:'admin'}`;
+const dbURI = `mongodb://${process.env.db_user}:${process.env.db_pwd}@${process.env.db_address?process.env.db_address:'127.0.0.1'}:${process.env.db_port?process.env.db_port:'27017'}/${process.env.db_name}?authSource=${process.env.db_authSource?process.env.db_authSource:'admin'}`;
 
-
+console.log(dbURI);
 
 const mongo = {
     connect:()=>{

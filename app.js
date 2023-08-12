@@ -8,7 +8,6 @@ import indexRouter from './routes/index.js';
 import userRouter from './routes/users.js'
 
 import { fileURLToPath } from 'url';
-import conf from './conf.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +32,6 @@ app.use('/users/', userRouter);
 
 console.log('Trying to connect to mongo db instance');
 import db from './mongo.js';
-
 db.connect().then(()=>{
   console.log('Connected to mongoose instance');
 }).catch((err)=>{
@@ -43,7 +41,7 @@ db.connect().then(()=>{
 import session from 'express-session';
 
 const sess = {
-  secret: conf.session.secret,
+  secret: process.env.session_secret,
   saveUninitialized: true,
   resave: false,
   cookie: {}

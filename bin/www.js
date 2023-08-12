@@ -3,12 +3,11 @@
 /**
  * Module dependencies.
  */
-
+import 'dotenv/config';
 import app from '../app.js';
 import Debug from 'debug'
 const debug = Debug('uf101:server');
 import http from 'http';
-
 
 /**
  * Get port from environment and store in Express.

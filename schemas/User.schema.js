@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
     stsCertificateNumber:{type:String, required:false, trim:true, unique:true},
     operationAuthorisationApprovalNumber:{type:String, required:false, trim:true, unique:true},
     wrappedEncryptionKey:{type:String, required:true, trim:true},
+    otp_mail_secret:{type:String},
+    otp_2fa_secret:{type:String},
     verified:{type:Boolean, default:false},
     verificationKey:{type:String}
 });

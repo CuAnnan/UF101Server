@@ -1,4 +1,6 @@
 (function($){
+
+
     $(function()
     {
         const hash = window.location.hash;
@@ -13,6 +15,52 @@
             $button.click(function() {
                 window.location.hash = $(this).data('bsTarget');
             });
+        });
+
+        $('#login_form_login_button').click(function(){
+            const $elements = this.form.elements;
+
+
+            const formData = new FormData();
+            formData.append('email',$elements['login_form_email'].value);
+            formData.append('emailKey',$elements['login_form_email_key'].value);
+            formData.append('authKey', $elements['login_form_auth_key'].value);
+
+            fetch(
+                '/users/login',
+                {
+                    method:'POST',
+                    body:formData
+                }
+            ).then((response)=>{
+                return response.json();
+            }).then(responseJSON=>{
+                console.log(responseJSON);
+            });
+
+        });
+
+        $('#login_button').click(function(){
+            const $form = this.form;
+            const $elements = $form.elements;
+            let formData = new FormData();
+            let email = $elements['login_email'].value;
+            $('#login_form_email').val(email);
+
+            formData.append('email', email);
+            if(email)
+            {
+                fetch(
+                    '/users/requestLoginTokens',
+                    {
+                        method:"POST",
+                        body: formData
+                    }
+                ).then((response)=>{
+
+                });
+                $('#loginModal').modal('show');
+            }
         });
     });
 })(window.jQuery);

@@ -1,2 +1,7 @@
 node_modules
-conf.js
+
+.env
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

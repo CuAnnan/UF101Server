@@ -9,6 +9,14 @@ const controller = new UserController();
 
 router.post('/register', upload.none(), (req, res, next)=>{controller.registerUser(req, res).catch(next);});
 
+//http://localhost/users/verifyAccount/YW01P-56_rRyA_Z8cW_QI
+router.get('/verifyAccount/:verificationKey', (req, res, next)=>{controller.validateUser(req, res).catch(next);});
+
+router.post('/requestLoginTokens', upload.none(), (req, res, next)=>{controller.requestLoginTokens(req, res).catch(next);});
+
+router.post('/login', upload.none(), (req, res, next)=>{controller.login(req, res).catch(next);});
+
+router.get('/test', (req, res, next)=>{controller.testLogin(req, res).catch(next);});
 
 
 export default router;
