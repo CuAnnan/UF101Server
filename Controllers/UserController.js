@@ -66,7 +66,7 @@ class UserController extends Controller
 
     async updateUserAccount(req, res)
     {
-        let user = await User.findOne({email: req.session._id});
+        let user = await User.findOne({email: req.session.user._id});
         if(user)
         {
             const data = req.body;
@@ -76,6 +76,25 @@ class UserController extends Controller
                 throw(new Error('Form data contained invalid keys'));
             }
             await User.updateOne({id:user._id}, data);
+            res.json({
+                success:true
+            });
+        }
+        else
+        {
+            res.json({
+                success:false,
+                message:MESSAGES.NO_USER_LOGGED_IN
+            });
+        }
+    }
+
+    async logout(req, res)
+    {
+        let user = await User.findOne({email: req.session.user._id});
+        if(user)
+        {
+            delete req.session.user;
             res.json({
                 success:true
             });
@@ -101,8 +120,6 @@ class UserController extends Controller
             const authDelta = authOTP.validate({token:req.body.authKey});
             if(emailDelta === null || authDelta === null)
             {
-                console.log(emailDelta, authDelta);
-                console.log(user.otp_mail_secret, user.otp_2fa_secret);
                 res.json({
                     success:false,
                     message:'OTP Validation Failed'
@@ -112,9 +129,7 @@ class UserController extends Controller
             {
                 req.session.user = user;
                 res.json({
-                    user:{
-                        email:req.body.email.toLowerCase()
-                    },
+                    user:user,
                     success:true
                 });
             }

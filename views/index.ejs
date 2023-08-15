@@ -24,11 +24,11 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#data-security" type="button" role="tab" aria-controls="dataSecurity" aria-selected="false">Data Security</button>
                         </li>
-                        <li class="nav-item loggedOutOnly" role="presentation" id="registrationPageTab">
+                        <li class="nav-item" role="presentation" id="registrationPageTab">
                             <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">Register</button>
                         </li>
                     </ul>
-                    <div class="navbar-nav loggedInOnly" id="logout_nav"<%- user?'':' style="display:none"' %>>
+                    <div class="navbar-nav loggedInOnly" id="logout_nav"<%- user?'':' style="display:none"' %> onclick="return false;">
                         <a id="logoutNav" href="#">Logout (<span id="logged_in_user_email"><%- user?user.email:'' %></span>)</a>
                     </div>
                     <div class="navbar-nav loggedOutOnly" id="login_nav"<%- user?' style="display:none"':'' %>>

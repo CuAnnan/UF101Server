@@ -17,6 +17,20 @@
             });
         });
 
+        $('#logoutNav').click(function(){
+            fetch('/users/logout', {
+               method:'POST'
+            }).then(response=>{
+                return response.json();
+            }).then(responseJSON=>{
+                if(responseJSON.success)
+                {
+                    $('.loggedOutOnly').show();
+                    $('.loggedInOnly').hide();
+                }
+            });
+        });
+
         $('#login_form_login_button').click(function(){
             const $elements = this.form.elements;
 
@@ -37,9 +51,9 @@
             }).then(responseJSON=>{
                 if(responseJSON.success)
                 {
+                    $('#logged_in_user_email').text(responseJSON.user.email);
                     $('.loggedOutOnly').hide();
                     $('.loggedInOnly').show();
-                    console.log(user);
                 }
             });
         });

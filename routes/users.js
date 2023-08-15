@@ -21,7 +21,7 @@ router.post('/requestLoginTokens', upload.none(), (req, res, next)=>{controller.
 
 router.post('/login', upload.none(), (req, res, next)=>{controller.login(req, res).catch(next);});
 
-
+router.post('/logout', upload.none(), (req, res, next)=>{controller.logout(req, res).catch(next);});
 
 
 export default router;
