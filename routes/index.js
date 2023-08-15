@@ -6,13 +6,7 @@ const controller = new Controller();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index');
-});
-
-router.get('/test', (req, res, next)=>{
-  res.json({
-    url:controller.getBaseURL(req)
-  })
+  res.render('index', {user:req.session.user});
 });
 
 export default router;

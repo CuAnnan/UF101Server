@@ -35,9 +35,13 @@
             ).then((response)=>{
                 return response.json();
             }).then(responseJSON=>{
-                console.log(responseJSON);
+                if(responseJSON.success)
+                {
+                    $('.loggedOutOnly').hide();
+                    $('.loggedInOnly').show();
+                    console.log(user);
+                }
             });
-
         });
 
         $('#login_button').click(function(){

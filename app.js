@@ -26,10 +26,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.disable('x-powered-by');
 
-app.use('/', indexRouter);
-app.use('/users/', userRouter);
-
-
 console.log('Trying to connect to mongo db instance');
 import db from './mongo.js';
 db.connect().then(()=>{
@@ -53,6 +49,10 @@ if (app.get('env') === 'production') {
 }
 
 app.use(session(sess))
+
+app.use('/', indexRouter);
+app.use('/users/', userRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

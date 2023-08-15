@@ -55,7 +55,8 @@ window.addEventListener('load', function(){
 
         await stripPrefixAndAddToFormData('registration_email');
         await stripPrefixAndAddToFormData('registration_firstname');
-        await stripPrefixAndAddToFormData('registration_lastname')
+        await stripPrefixAndAddToFormData('registration_lastname');
+        await stripPrefixAndAddToFormData('registration_submit_to');
 
 
         // encrypt and secure the privileged data
@@ -65,7 +66,7 @@ window.addEventListener('load', function(){
         await stripPrefixAndAddToFormData('registration_operationAuthorisationApprovalNumber', true);
 
         const response = await fetch(
-            '/users/register',
+            '/users/account',
             {
                 method:"POST",
                 body: formData
@@ -77,8 +78,8 @@ window.addEventListener('load', function(){
     const $form = document.getElementById('registration_form');
     const $formElements = $form.elements;
     const formElementsArray = Array.from($form.elements);
-    const $passwordFeedback = document.getElementById('passwordFeedback');
-    const $emailFeedback = document.getElementById('emailFeedback');
+    const $passwordFeedback = document.getElementById('registration_password_feedback');
+    const $emailFeedback = document.getElementById('registration_email_feedback');
     const $modal = $('#registration_modal').modal({backdrop:'static'});
     const $modalFeedback = document.getElementById('registrationModalFeedBack');
 

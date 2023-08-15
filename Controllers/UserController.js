@@ -11,12 +11,13 @@ import {get} from "mongoose";
 const {encode} = pkg;
 
 const MESSAGES = {
-    NO_USER_FOUND:'No verified user was found matching that email'
+    NO_USER_FOUND:'No verified user was found matching that email.',
+    NO_USER_LOGGED_IN:'No user logged in.',
 };
 
 
-function getTwoFactorAuthenticationCode(secret = process.env.totp_secret, period=process.env.totp_period) {
-    console.log(secret);
+
+function getTwoFactorAuthenticationCode(secret, period) {
     const otpConf = {
         issuer:     process.env.totp_issuer,
         label:      process.env.totp_label,
@@ -25,7 +26,6 @@ function getTwoFactorAuthenticationCode(secret = process.env.totp_secret, period
         period:     parseInt(period),
         secret:     OTPAuth.Secret.fromBase32(secret)
     };
-    console.log(otpConf);
     return new OTPAuth.TOTP(otpConf);
 }
 
@@ -36,13 +36,57 @@ function generateSecret()
 
 class UserController extends Controller
 {
-    async testLogin(req, res)
+    /**
+     *
+     * @param userFormObject This will be a formdata object sent via fetch
+     * @returns {Promise<boolean>}
+     */
+    async validateUserFormObject(userFormObject)
     {
-        let user = await User.findOne({email: 'eamonn.kearns@so-4pt.net', verified: true});
-        let totp = getTwoFactorAuthenticationCode(user.otp_mail_secret);
-        let currentToken = totp.generate();
-        let test = totp.validate({token:currentToken});
-        res.json({token:currentToken, test:test});
+        /**
+         * Stripped down schema object.
+         */
+        const userAccountSimplified = {
+            email:{type:String},
+            passwordHash:{type:String},
+            firstname:{type:String},
+            lastname:{type:String},
+            uasOperatorRegistrationNumber:{type:String},
+            stsCertificateNumber:{type:String},
+            operationAuthorisationApprovalNumber:{type:String},
+            wrappedEncryptionKey:{type:String}
+        };
+        const userFields = Object.keys(userAccountSimplified);
+        const formFields = Object.keys(userFormObject);
+        const difference = (arr1, arr2)=>arr1
+            .filter(x => !arr2.includes(x))
+            .concat(arr2.filter(x => !arr1.includes(x)));
+        return difference(formFields,userFields).length >0;
+    }
+
+    async updateUserAccount(req, res)
+    {
+        let user = await User.findOne({email: req.session._id});
+        if(user)
+        {
+            const data = req.body;
+            let dataValid = this.validateUserFormObject(data);
+            if(!dataValid)
+            {
+                throw(new Error('Form data contained invalid keys'));
+            }
+            await User.updateOne({id:user._id}, data);
+            res.json({
+                success:true
+            });
+        }
+        else
+        {
+            res.json({
+                success:false,
+                message:MESSAGES.NO_USER_LOGGED_IN
+            });
+        }
     }
 
     async login(req, res)
@@ -50,13 +94,15 @@ class UserController extends Controller
         let user = await User.findOne({email: req.body.email, verified: true});
         if(user)
         {
-            let emailOTP = getTwoFactorAuthenticationCode(user.otp_mail_secret);
-            let authOTP = getTwoFactorAuthenticationCode(user.otp_2fa_secret);
+            let emailOTP = getTwoFactorAuthenticationCode(user.otp_mail_secret, process.env.totp_mail_period);
+            let authOTP = getTwoFactorAuthenticationCode(user.otp_2fa_secret, process.env.totp_auth_period);
 
             const emailDelta = emailOTP.validate({token:req.body.emailKey});
             const authDelta = authOTP.validate({token:req.body.authKey});
             if(emailDelta === null || authDelta === null)
             {
+                console.log(emailDelta, authDelta);
+                console.log(user.otp_mail_secret, user.otp_2fa_secret);
                 res.json({
                     success:false,
                     message:'OTP Validation Failed'
@@ -64,7 +110,11 @@ class UserController extends Controller
             }
             else
             {
+                req.session.user = user;
                 res.json({
+                    user:{
+                        email:req.body.email.toLowerCase()
+                    },
                     success:true
                 });
             }
@@ -83,7 +133,7 @@ class UserController extends Controller
         if (user)
         {
             const templatePath = path.resolve('views', 'emails', 'sign-in-email.ejs');
-            let otp = getTwoFactorAuthenticationCode(user.otp_mail_secret);
+            let otp = getTwoFactorAuthenticationCode(user.otp_mail_secret, process.env.totp_mail_period);
             ejs.renderFile(templatePath, {user:user, ip_address:req.socket.remoteAddress, sign_in_key:otp.generate()}, {}, function(err, html){
                 sendMail({
                     to: user.email,
@@ -114,7 +164,7 @@ class UserController extends Controller
             user.verificationKey = undefined;
             const secret1 = generateSecret();
             const secret2 = generateSecret();
-            const totpUrl = getTwoFactorAuthenticationCode(secret2).toString();
+            const totpUrl = getTwoFactorAuthenticationCode(secret2, process.env.totp_auth_period).toString();
             user.otp_mail_secret = secret1;
             user.otp_2fa_secret = secret2;
             await user.save();
@@ -129,6 +179,12 @@ class UserController extends Controller
     async registerUser(req, res)
     {
         const data = req.body;
+        let dataValid = this.validateUserFormObject(data);
+        if(!dataValid)
+        {
+            throw(new Error('Form data contained invalid keys'));
+        }
+
         nanoid()
             .then((verificationKey)=>{
                 data.verificationKey = verificationKey;
@@ -166,9 +222,9 @@ class UserController extends Controller
                 });
             })
             .catch((error)=>{
-                console.log(error);
                 res.json({
-                    success:false
+                    success:false,
+                    error:error
                 });
             });
 
