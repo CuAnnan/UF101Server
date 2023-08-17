@@ -45,22 +45,10 @@ class UserController extends Controller
         /**
          * Stripped down schema object.
          */
-        const userAccountSimplified = {
-            email:{type:String},
-            passwordHash:{type:String},
-            firstname:{type:String},
-            lastname:{type:String},
-            uasOperatorRegistrationNumber:{type:String},
-            stsCertificateNumber:{type:String},
-            operationAuthorisationApprovalNumber:{type:String},
-            wrappedEncryptionKey:{type:String}
-        };
-        const userFields = Object.keys(userAccountSimplified);
+        const userSchema = User.schema;
+        const userFields = Object.keys(userSchema);
         const formFields = Object.keys(userFormObject);
-        const difference = (arr1, arr2)=>arr1
-            .filter(x => !arr2.includes(x))
-            .concat(arr2.filter(x => !arr1.includes(x)));
-        return difference(formFields,userFields).length >0;
+        return this.arrayIsSubsetOfArray(formFields, userFields);
     }
 
     /**

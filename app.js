@@ -4,9 +4,6 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 
-import indexRouter from './routes/index.js';
-import userRouter from './routes/users.js'
-
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,8 +47,12 @@ if (app.get('env') === 'production') {
 
 app.use(session(sess))
 
+import indexRouter from './routes/index.js';
+import userRouter from './routes/users.js'
+import uf101Router from './routes/uf101.js';
 app.use('/', indexRouter);
 app.use('/users/', userRouter);
+app.use('/uf101/', uf101Router);
 
 
 // catch 404 and forward to error handler
