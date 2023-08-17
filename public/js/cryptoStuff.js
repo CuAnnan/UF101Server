@@ -15,15 +15,65 @@ function getKey(keyMaterial, salt)
     );
 }
 
-function getPasswordKey(password)
+function getPasswordKey(password, bitsOnly = false, algorithm=config.key.name)
 {
+
     return window.crypto.subtle.importKey(
         "raw",
         new TextEncoder().encode(password),
-        { name: config.key.name },
+        { name: algorithm },
         false,
-        ["deriveBits", "deriveKey"],
+        bitsOnly?['deriveBits']:['deriveKey','deriveBits'],
     );
+}
+
+async function hashPassword(password)
+{
+
+    // generate a crypto key with the password
+    const cryptoKey = await getPasswordKey(password, true);
+    // generate a salt for hashing the password
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    // store the salt as an array for later use
+    const saltArray = Array.from(new Uint8Array(salt));
+    let algo = config.key;
+    algo.salt = salt;
+    // hash the password
+    const keyBuffer = await crypto.subtle.deriveBits(algo,cryptoKey,256);
+    // save it as an array
+    const keyArray = Array.from(new Uint8Array(keyBuffer));
+    return `${config.key.name}:${config.key.hash}:${config.key.iterations}:${arrayToString(saltArray)}:${arrayToString(keyArray)}`;
+}
+
+
+/**
+ *
+ * @param password
+ * @param {Object} passwordHashObject
+ * @param {String} passwordHashObject.algorithm
+ * @param {String} passwordHashObject.digest
+ * @param {Number} passwordHashObject.iterations
+ * @param {String} passwordHashObject.salt
+ * @param {String} passwordHashObject.hash
+ * @returns {Promise<Boolean>}
+ */
+async function verifyPassword(password, passwordHashObject)
+{
+    const newKey =  await getPasswordKey(password, true, passwordHashObject.algorithm);
+
+    const newKeyBuffer = await crypto.subtle.deriveBits(
+        {
+            name:passwordHashObject.algorithm,
+            hash:passwordHashObject.digest,
+            salt:stringToArrayBuffer(passwordHashObject.salt),
+            iterations:passwordHashObject.iterations
+        },
+        newKey,
+        256
+    );
+    const newKeyArray = Array.from(new Uint8Array(newKeyBuffer));
+    const newKeyString = arrayToString(newKeyArray);
+    return newKeyString === passwordHashObject.hash;
 }
 
 function getEncryptionKey()

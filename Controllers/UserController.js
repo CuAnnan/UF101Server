@@ -64,9 +64,23 @@ class UserController extends Controller
         return difference(formFields,userFields).length >0;
     }
 
+    /**
+     *
+     * @param req
+     * @returns {Promise<User>}
+     */
+    async getLoggedInUser(req)
+    {
+        if(req.session.user)
+        {
+            return User.findOne({_id: req.session.user._id});
+        }
+        return null;
+    }
+
     async updateUserAccount(req, res)
     {
-        let user = await User.findOne({email: req.session.user._id});
+        let user= await this.getLoggedInUser(req);
         if(user)
         {
             const data = req.body;
@@ -89,9 +103,22 @@ class UserController extends Controller
         }
     }
 
+    async checkLoginStatus(req, res)
+    {
+        let user= await this.getLoggedInUser(req);
+        if(user)
+        {
+            res.json({user});
+        }
+        else
+        {
+            res.json({user:null});
+        }
+    }
+
     async logout(req, res)
     {
-        let user = await User.findOne({email: req.session.user._id});
+        let user= await this.getLoggedInUser(req);
         if(user)
         {
             delete req.session.user;
@@ -149,17 +176,22 @@ class UserController extends Controller
         {
             const templatePath = path.resolve('views', 'emails', 'sign-in-email.ejs');
             let otp = getTwoFactorAuthenticationCode(user.otp_mail_secret, process.env.totp_mail_period);
-            ejs.renderFile(templatePath, {user:user, ip_address:req.socket.remoteAddress, sign_in_key:otp.generate()}, {}, function(err, html){
-                sendMail({
-                    to: user.email,
-                    subject: 'MOAP login',
-                    html: html
-                }).then(()=>{
-                    res.json({
-                        success:true
-                    });
-                });
-            });
+            let key = otp.generate();
+            res.json({
+                success:true,
+                key
+            })
+            // ejs.renderFile(templatePath, {user:user, ip_address:req.socket.remoteAddress, sign_in_key:key}, {}, function(err, html){
+            //     sendMail({
+            //         to: user.email,
+            //         subject: 'MOAP login',
+            //         html: html
+            //     }).then(()=>{
+            //         res.json({
+            //             success:true
+            //         });
+            //     });
+            // });
         }
         else
         {

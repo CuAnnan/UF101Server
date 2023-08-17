@@ -2,3 +2,23 @@
 {
     color:red;
 }
+
+.loggedInOnly
+{
+    display:none;
+}
+
+.accountPageOnly
+{
+    display:none!important;
+}
+
+.loginPhaseTwo
+{
+    display:none;
+}
+
+.loginPhaseThree
+{
+    display:none;
+}
