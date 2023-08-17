@@ -49,13 +49,19 @@ function updateLoggedInStatus(loggedIn)
 {
     if(loggedIn)
     {
-        $('.loggedOutOnly').hide();
-        $('.loggedInOnly').show();
-        $('.loginPhaseOne').hide();
-        $('.loginPhaseTwo').show();
-        $('form .loggedInOnly').removeClass('d-none');
+        const user = MOAP_CONTAINER.user;
+        const decrypted = MOAP_CONTAINER.decryptedUserFields;
+        $('form .loggedInOnlyRow').removeClass('d-none');
         $('#account-tab').text('Account details');
-        $('#logged_in_user_email').text(MOAP_CONTAINER.user.email);
+        $('#logged_in_user_email').text(user.email);
+        const $formElements = document.getElementById('registration_form').elements;
+        $formElements['registration_firstname'].value = user.firstname;
+        $formElements['registration_lastname'].value = user.lastname;
+        $formElements['registration_email'].value=user.email;
+        for(const [key, val] of Object.entries(decrypted))
+        {
+           $formElements[`registration_${key}`].value=val;
+        }
     }
     else
     {
@@ -65,6 +71,7 @@ function updateLoggedInStatus(loggedIn)
         $('.loginPhaseTwo').hide();
         $('form .loggedInOnly').addClass('d-none');
         $('#account-tab').text('Register');
+        document.getElementById('registration_form').reset();
     }
 }
 
@@ -91,6 +98,7 @@ function updateLoggedInStatus(loggedIn)
                         MOAP_CONTAINER[key] = value;
                     }
                     await decryptLoggedInUser(MOAP_CONTAINER.password);
+                    updateLoggedInStatus(true);
                 }
                 else
                 {
@@ -98,6 +106,7 @@ function updateLoggedInStatus(loggedIn)
                     console.log('Local storage empty. Logging out fully.')
                     fetch('/users/logout',{method:'POST'}).then(()=>{
                         window.location.reload();
+                        updateLoggedInStatus(false);
                     });
                 }
             }
