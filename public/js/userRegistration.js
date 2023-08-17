@@ -1,3 +1,5 @@
+let $modalFeedback;
+
 /**
  * @param password  The password to validate
  * @returns {null|string} Returns null if there's nothing wrong with the password or the password validation error
@@ -89,7 +91,7 @@ window.addEventListener('load', function(){
     const $passwordFeedback = document.getElementById('registration_password_feedback');
     const $emailFeedback = document.getElementById('registration_email_feedback');
     const $modal = $('#registration_modal').modal({backdrop:'static'});
-    const $modalFeedback = document.getElementById('registrationModalFeedBack');
+    $modalFeedback = document.getElementById('registrationModalFeedBack');
 
     document.getElementById('registration_registerButton').addEventListener('click', function(){
 

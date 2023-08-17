@@ -7,7 +7,6 @@ import path from 'path';
 import * as OTPAuth from "otpauth";
 import crypto from 'crypto';
 import pkg from 'hi-base32';
-import {get} from "mongoose";
 const {encode} = pkg;
 
 const MESSAGES = {
