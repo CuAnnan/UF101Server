@@ -12,6 +12,14 @@ router.post('/account', upload.none(), (req, res, next)=>{
     {
         controller.registerUser(req, res).catch(next);
     }
+    else if(req.body.submit_to === 'update')
+    {
+        controller.updateUserAccount(req, res).catch(next);
+    }
+    else
+    {
+        next();
+    }
 });
 
 //http://localhost/users/verifyAccount/YW01P-56_rRyA_Z8cW_QI
@@ -23,7 +31,6 @@ router.post('/login', upload.none(), (req, res, next)=>{controller.login(req, re
 
 router.post('/logout', upload.none(), (req, res, next)=>{controller.logout(req, res).catch(next);});
 
-router.post('/checkLoginStatus', upload.none(), (req, res, next)=>{controller.checkLoginStatus(req, res).catch(next)});
-
+router.post('/checkLoginStatus', upload.none(), (req, res, next)=>{controller.checkLoginStatus(req, res).catch(next);});
 
 export default router;

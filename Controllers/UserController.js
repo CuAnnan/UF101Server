@@ -71,12 +71,22 @@ class UserController extends Controller
         if(user)
         {
             const data = req.body;
+            delete data.submit_to;
             let dataValid = this.validateUserFormObject(data);
             if(!dataValid)
             {
                 throw(new Error('Form data contained invalid keys'));
             }
-            await User.updateOne({id:user._id}, data);
+
+            for(const [key,value] in Object.entries(data))
+            {
+                if(!value)
+                {
+                    delete data[key];
+                }
+            }
+
+            await User.findOneAndUpdate({email:user.email}, data);
             res.json({
                 success:true
             });
@@ -256,6 +266,7 @@ class UserController extends Controller
                 });
             })
             .catch((error)=>{
+                console.log(error);
                 res.json({
                     success:false,
                     error:error

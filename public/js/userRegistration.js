@@ -1,36 +1,104 @@
 let $modalFeedback;
 
 /**
- * @param password  The password to validate
- * @returns {null|string} Returns null if there's nothing wrong with the password or the password validation error
+ * @param $password  The field containing the password to validate
+ * @param $passwordConfirmation The field containing the password confirmation
+ * @param $passwordFeedback The element for the password feedback
+ * @returns {Boolean} Returns true if there's nothing wrong with the password or false if there is
  */
-function validatePassword(password)
+function validatePassword($password, $passwordConfirmation, $passwordFeedback)
 {
+    let error = '';
+    const password = $password.value;
+    const passwordConfirmation = $passwordConfirmation.value;
+    if(password !== passwordConfirmation)
+    {
+        error = 'Password strings do not match';
+
+    }
     if(password.length < 8)
     {
-        return 'Passwords must be at least 8 characters long';
+        error = 'Passwords must be at least 8 characters long';
     }
     else if(password.length < 13 && !(password.match(/[a-z]/) && password.match(/[A-Z]/) && password.match(/[0-9]/) && password.match(/[^a-z^A-Z\d]/)))
     {
-        return 'Passwords with fewer than 13 characters must have at least one upper case letter, one lower case letter, one number, and one character that is not a letter or number';
+        error = 'Passwords with fewer than 13 characters must have at least one upper case letter, one lower case letter, one number, and one character that is not a letter or number';
     }
     else if(password.length < 16 && !(password.match(/[a-z]/) && password.match(/[A-Z]/) && password.match(/[0-9]/)))
     {
-        return 'Passwords with fewer than 13 characters must have at least one upper case letter, one lower case letter, and one number';
+        error = 'Passwords with fewer than 13 characters must have at least one upper case letter, one lower case letter, and one number';
     }
     else if(password.length < 20 && !(password.match(/[a-z]/) && password.match(/[A-Z]/)))
     {
-        return 'Passwords with fewer than 13 characters must have at least one upper case letter, and one lower case letter';
+        error = 'Passwords with fewer than 13 characters must have at least one upper case letter, and one lower case letter';
     }
-    return null;
+    $passwordFeedback.innerText = error;
+
+    return !error;
 }
 
-async function decryptAndPopulateForm(password, user)
+function validateEmail($email, $emailConfirmation)
 {
-    $('#registration_submit_to').val('update');
-    $('#registration_email').val(user.email);
-    $('#registration_firstname').val(user.firstname);
-    $('#registration_lastname').val(user.lastname);
+    if($email.value !== $emailConfirmation.value)
+    {
+        $email.addClass('is-invalid');
+        return false;
+    }
+    return true;
+}
+
+/**
+ * This is sufficiently verbose a function as to require its own function.
+ * @param password
+ * @returns {Promise<void>}
+ */
+async function decryptLoggedInUser(password)
+{
+    const $feedback = $('#login_decryption_feedback');
+    $('.loginPhaseTwo').hide();
+    $('.loginPhaseThree').show();
+    $feedback.text('Password validated, unwrapping encryption key');
+
+    const user = MOAP_CONTAINER.user;
+    const encryptionKey = await unwrapCryptoKey(user.wrappedEncryptionKey, password);
+    MOAP_CONTAINER.unwrappedKey = encryptionKey;
+    const decryptedUserFields = {
+        uasOperatorRegistrationNumber:null,
+        stsCertificateNumber: null,
+        operationAuthorisationApprovalNumber: null,
+        primaryPhoneNumber:null,
+        secondaryPhoneNumber:null,
+    };
+    if(user.uasOperatorRegistrationNumber)
+    {
+        $feedback.text('Decrypting UAS Operator Registration Number');
+        decryptedUserFields.uasOperatorRegistrationNumber = await decrypt(user.uasOperatorRegistrationNumber, encryptionKey);
+    }
+    if(user.stsCertificateNumber)
+    {
+        $feedback.text('Decrypting STS Certificate Number');
+        decryptedUserFields.stsCertificateNumber = await decrypt(user.stsCertificateNumber, encryptionKey);
+    }
+    if(user.operationAuthorisationApprovalNumber)
+    {
+        $feedback.text('Decrypting Operation Authorisation Approval Number');
+        decryptedUserFields.operationAuthorisationApprovalNumber = await decrypt(user.operationAuthorisationApprovalNumber, encryptionKey);
+    }
+    if(user.primaryPhoneNumber)
+    {
+        $feedback.text('Decrypting Primary Phone Number');
+        decryptedUserFields.primaryPhoneNumber = await decrypt(user.primaryPhoneNumber, encryptionKey);
+    }
+    if(user.secondaryPhoneNumber)
+    {
+        $feedback.text('Decrypting Secondary Phone Number');
+        decryptedUserFields.secondaryPhoneNumber = await decrypt(user.secondaryPhoneNumber, encryptionKey);
+    }
+    MOAP_CONTAINER.decryptedUserFields = decryptedUserFields;
+    MOAP_CONTAINER.password = password;
+    $('#loginModal').modal('hide');
+    // store the user data, including the password, in the localstorage
+    localStorage.setItem('user', btoa(JSON.stringify(MOAP_CONTAINER)));
 }
 
 async function encryptAndSubmitForm(password, form)
@@ -72,6 +140,10 @@ async function encryptAndSubmitForm(password, form)
     await stripPrefixAndAddToFormData('registration_uasOperatorRegistrationNumber', true);
     await stripPrefixAndAddToFormData('registration_stsCertificateNumber', true);
     await stripPrefixAndAddToFormData('registration_operationAuthorisationApprovalNumber', true);
+    await stripPrefixAndAddToFormData('registration_primaryPhoneNumber', true);
+    await stripPrefixAndAddToFormData('registration_secondaryPhoneNumber', true);
+
+    console.log(formData);
 
     const response = await fetch(
         '/users/account',
@@ -81,6 +153,49 @@ async function encryptAndSubmitForm(password, form)
         }
     );
     return response.json();
+}
+
+function validateFormForUpdate($formElements, $passwordFeedback, $emailFeedback)
+{
+    if($formElements['registration_password'].value && $formElements['registration_passwordConfirmation'].value)
+    {
+        if(!validatePassword($formElements['registration_password'], $formElements['registration_passwordConfirmation'], $passwordFeedback))
+        {
+            return false;
+        }
+        console.log("As this point I need to implement password management");
+    }
+
+    if($formElements['registration_emailConfirmation'].value && $formElements['registration_emailConfirmation'].value)
+    {
+        if(!validateEmail($formElements['registration_email'].value, $formElements['registration_emailConfirmation'].value))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function validateFormForRegistration($formElements, $passwordFeedback, $emailFeedback)
+{
+    if(!validatePassword($formElements['registration_password'], $formElements['registration_passwordConfirmation'], $passwordFeedback))
+    {
+        return false;
+    }
+
+    if(!validateEmail($formElements['registration_email'].value, $formElements['registration_emailConfirmation'].value))
+    {
+        return false
+    }
+
+    if(!$formElements['registration_privacy'].checked)
+    {
+        $formElements['registration_privacy'].classList.add('is-invalid');
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -98,62 +213,57 @@ window.addEventListener('load', function(){
         formElementsArray.forEach((element)=>{
             element.classList.remove('is-invalid');
         });
-        const password = $formElements['registration_password'].value;
+        let password;
 
-        if(password !== $formElements['registration_passwordConfirmation'].value)
+
+        if($formElements['registration_submit_to'].value === 'register')
         {
-            $passwordFeedback.innerText = "Password mismatch";
-            $formElements['registration_password'].classList.add('is-invalid');
+            password = $formElements['registration_password'].value;
+            if (!validateFormForRegistration($formElements, $passwordFeedback, $emailFeedback))
+            {
+               return null;
+            }
         }
-        else
+        if($formElements['registration_submit_to'].value === 'update')
         {
-            let error = validatePassword(password);
-            if(error)
+            password = MOAP_CONTAINER.password;
+            if(!validateFormForUpdate($formElements, $passwordFeedback, $emailFeedback))
             {
-                $passwordFeedback.innerText = error;
-                $formElements['registration_password'].classList.add('is-invalid');
-                return null;
-            }
-            if($formElements['registration_email'].value !== $formElements['registration_emailConfirmation'].value)
-            {
-                $formElements['registration_email'].classList.add('is-invalid');
-                $emailFeedback.innerText = 'Email mismatch';
-                return null;
-            }
-            if(!$formElements['registration_privacy'].checked)
-            {
-                $formElements['registration_privacy'].classList.add('is-invalid');
-                return null;
-            }
 
-            $modal.modal('show');
-            $modalFeedback.innerText = 'Securing your password';
-            encryptAndSubmitForm(password, $form).then((response)=> {
-                if(response.success)
+                return null;
+            }
+        }
+        $modal.modal('show');
+        $modalFeedback.innerText = 'Securing your password';
+        encryptAndSubmitForm(password, $form).then((response)=> {
+            if(response.success)
+            {
+                $($form).hide();
+                document.getElementById('registration_email_sent').innerText = $formElements['registration_email'].value;
+                $('#registration_success').show();
+            }
+            else
+            {
+                if(response.error && response.error.keyPattern)
                 {
-                    $($form).hide();
-                    document.getElementById('registration_email_sent').innerText = $formElements['registration_email'].value;
-                    $('#registration_success').show();
-                }
-                else
-                {
-                    if(response.error && response.error.keyPattern)
+                    // get the offending duplicate field
+                    const duplicate = Object.keys(response.error.keyPattern)[0];
+                    if(duplicate === 'email')
                     {
-                        // get the offending duplicate field
-                        const duplicate = Object.keys(response.error.keyPattern)[0];
-                        if(duplicate === 'email')
-                        {
-                            $formElements['registration_email'].classList.add('is-invalid');
-                            $emailFeedback.innerText = 'Email already in use';
-                        }
-                        else
-                        {
-                            console.log(duplicate);
-                        }
+                        $formElements['registration_email'].classList.add('is-invalid');
+                        $emailFeedback.innerText = 'Email already in use';
+                    }
+                    else
+                    {
+                        const id = `registration_${duplicate}`;
+                        console.log(id)
+                        $formElements[id].classList.add('is-invalid');
+                        document.getElementById(`${id}_feedback`).innerText=`Dupicate ${duplicate}`;
                     }
                 }
-                $modal.modal('hide');
-            });
-        }
+            }
+            $modal.modal('hide');
+        });
+
     });
 });

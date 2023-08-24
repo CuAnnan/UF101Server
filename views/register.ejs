@@ -2,43 +2,36 @@
 <form id="registration_form" onsubmit="return false;">
     <input type="hidden" id="registration_submit_to" name="registration_submit_to" value="<%- user?'update':'register' %>"/>
     <h4>Account details</h4>
+    <div class="form-group row loggedInOnlyRow d-none">
+        <div class="col-sm-2"></div>
+        <div class="col">
+            You will only need to confirm your password to change it, likewise you only need to enter your email confirmation if you intend on changing it. Your passsword will be needed to encrypt all changes and your 2fa authenticator will be required to save those changes.
+        </div>
+    </div>
     <div class="form-group row">
         <label for="registration_email" class="col-sm-2 col-form-label">Email</label>
         <div class="col-sm-10">
-            <input type="email" class="form-control" id="registration_email" name="registration_email" placeholder="Email" required>
-            <div class="invalid-feedback" id="registration_email_feedback"></div>
+            <input type="email" class="form-control" id="registration_email" name="registration_email" placeholder="Email">
+            <div class="invalid-feedback" id="registration_email_feedback">Email mismatch</div>
         </div>
     </div>
     <div class="form-group row">
         <label for="registration_emailConfirmation" class="col-sm-2 col-form-label">Confirm email</label>
         <div class="col-sm-10">
-            <input type="email" class="form-control" id="registration_emailConfirmation" name="registration_emailConfirmation" placeholder="Confirm email" required>
-        </div>
-    </div>
-    <div class="form-group row loggedInOnlyRow d-none">
-        <div class="col-sm-2"></div>
-        <div class="col">
-            You will need to enter your password to change any of these fields and you will need to use your phone's authenticator.
-        </div>
-    </div>
-    <div class="form-group loggedInOnlyRow row d-none">
-        <label for="registration_current_password" class="col-sm-2 col-form-label">Current Password <span class="encrypted">*</span></label>
-        <div class="col-sm-10">
-            <input type="password" class="form-control" id="registration_current_password" name="registration_current_password" required>
-            <div class="invalid-feedback" id="registration_current_password_feedback"></div>
+            <input type="email" class="form-control" id="registration_emailConfirmation" name="registration_emailConfirmation" placeholder="Confirm email">
         </div>
     </div>
     <div class="form-group row">
         <label for="registration_password" class="col-sm-2 col-form-label">Password <span class="encrypted">*</span></label>
         <div class="col-sm-10">
-            <input type="password" class="form-control" id="registration_password" name="registration_password" required>
+            <input type="password" class="form-control" id="registration_password" name="registration_password">
             <div class="invalid-feedback" id="registration_password_feedback"></div>
         </div>
     </div>
     <div class="form-group row">
         <label for="registration_passwordConfirmation" class="col-sm-2 col-form-label">Confirm password</label>
         <div class="col-sm-10">
-            <input type="password" class="form-control" id="registration_passwordConfirmation" name="registration_passwordConfirmation" required>
+            <input type="password" class="form-control" id="registration_passwordConfirmation" name="registration_passwordConfirmation">
         </div>
     </div>
 
@@ -88,7 +81,7 @@
             <div class="invalid-feedback" id="registration_operationAuthorisationApprovalNumberFeedback"></div>
         </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row" id="privacyAndDataPolicy">
         <div class="col-sm-2"></div>
         <div class="col">
             <input type="checkbox" id="registration_privacy" class="form-check-input" required/>

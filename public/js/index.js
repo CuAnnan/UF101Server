@@ -2,51 +2,10 @@ const MOAP_CONTAINER = {
 
 };
 
-/**
- * This is sufficiently verbose a function as to require its own function.
- * @param password
- * @returns {Promise<void>}
- */
-async function decryptLoggedInUser(password)
-{
-    const $feedback = $('#login_decryption_feedback');
-    $('.loginPhaseTwo').hide();
-    $('.loginPhaseThree').show();
-    $feedback.text('Password validated, unwrapping encryption key');
-
-    const user = MOAP_CONTAINER.user;
-    const encryptionKey = await unwrapCryptoKey(user.wrappedEncryptionKey, password);
-    MOAP_CONTAINER.unwrappedKey = encryptionKey;
-    const decryptedUserFields = {
-        uasOperatorRegistrationNumber:null,
-        stsCertificateNumber: null,
-        operationAuthorisationApprovalNumber: null
-    };
-    if(user.uasOperatorRegistrationNumber)
-    {
-        $feedback.text('Decrypting UAS Operator Registration Number');
-        decryptedUserFields.uasOperatorRegistrationNumber = await decrypt(user.uasOperatorRegistrationNumber, encryptionKey);
-    }
-    if(user.stsCertificateNumber)
-    {
-        $feedback.text('Decrypting STS Certificate Number');
-        decryptedUserFields.stsCertificateNumber = await decrypt(user.stsCertificateNumber, encryptionKey);
-    }
-    if(user.operationAuthorisationApprovalNumber)
-    {
-        $feedback.text('Decrypting Operation Authorisation Approval Number');
-        decryptedUserFields.operationAuthorisationApprovalNumber = await decrypt(user.operationAuthorisationApprovalNumber, encryptionKey);
-    }
-    MOAP_CONTAINER.decryptedUserFields = decryptedUserFields;
-    MOAP_CONTAINER.password = password;
-    $('#loginModal').modal('hide');
-    // store the user data, including the password, in the localstorage
-    localStorage.setItem('user', btoa(JSON.stringify(MOAP_CONTAINER)));
-}
-
 
 function updateLoggedInStatus(loggedIn)
 {
+    const $formElements = document.getElementById('registration_form').elements;
     if(loggedIn)
     {
         const user = MOAP_CONTAINER.user;
@@ -58,9 +17,15 @@ function updateLoggedInStatus(loggedIn)
         $formElements['registration_firstname'].value = user.firstname;
         $formElements['registration_lastname'].value = user.lastname;
         $formElements['registration_email'].value=user.email;
-        for(const [key, val] of Object.entries(decrypted))
+        $formElements['registration_submit_to'].value = 'update';
+        $formElements['registration_registerButton'].innerText='Update';
+        $formElements['registration_privacy'].setAttribute('required', '');
+        $('.loggedInOnly').show();
+        $('.loggedOutOnly').hide();
+        $('#privacyAndDataPolicy').addClass('d-none');
+        for (const [key, val] of Object.entries(decrypted))
         {
-           $formElements[`registration_${key}`].value=val;
+            $formElements[`registration_${key}`].value = val;
         }
     }
     else
@@ -69,8 +34,13 @@ function updateLoggedInStatus(loggedIn)
         $('.loggedInOnly').hide();
         $('.loginPhaseOne').show();
         $('.loginPhaseTwo').hide();
+        $('.loginPhaseThree').hide();
         $('form .loggedInOnly').addClass('d-none');
         $('#account-tab').text('Register');
+        $('#privacyAndDataPolicy').removeClass('d-none');
+        $formElements['registration_privacy'].removeAttribute('required');
+        $formElements['registration_submit_to'].value = 'register';
+        $formElements['registration_registerButton'].innerText='Register';
         document.getElementById('registration_form').reset();
     }
 }
@@ -103,7 +73,6 @@ function updateLoggedInStatus(loggedIn)
                 else
                 {
                     // there's nothing in localstorage. It could have been cleared.
-                    console.log('Local storage empty. Logging out fully.')
                     fetch('/users/logout',{method:'POST'}).then(()=>{
                         window.location.reload();
                         updateLoggedInStatus(false);
@@ -142,6 +111,11 @@ function updateLoggedInStatus(loggedIn)
                 if(responseJSON.success)
                 {
                     document.getElementById('registration_form').reset();
+                    for(const key of Object.keys(MOAP_CONTAINER))
+                    {
+                        delete MOAP_CONTAINER['key'];
+                    }
+
                     updateLoggedInStatus(false);
                 }
             });
@@ -208,8 +182,9 @@ function updateLoggedInStatus(loggedIn)
                 {
                     // store the user in the DOM
                     MOAP_CONTAINER.user = responseJSON.user;
+                    $('.loginPhaseOne').hide();
+                    $('.loginPhaseTwo').show();
                     // update some fields
-                    updateLoggedInStatus(true);
                 }
             });
         });
@@ -228,6 +203,7 @@ function updateLoggedInStatus(loggedIn)
                 {algorithm, digest, iterations, salt, hash}
             ).then(async (valid)=>{
                 await decryptLoggedInUser(password);
+                updateLoggedInStatus(true);
             });
         });
     });
